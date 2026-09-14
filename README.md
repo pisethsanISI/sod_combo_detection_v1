@@ -75,6 +75,12 @@ after a new export doesn't mean re-browsing everything. This is the same
 `combo-detect` pipeline underneath -- `cli.py` and `gui.py` both call the
 shared `pipeline.run_detection()`, so the two never drift apart.
 
+If any selected CSV is the bundled `data/sample_*.csv` demo dataset (the
+synthetic 2-user set also used by `.\run.ps1`), a warning banner appears
+under the file fields, and clicking Run asks you to confirm before
+running against it -- so a stale remembered path from a previous demo
+run can't silently produce a "findings" count you mistake for real data.
+
 ### Running against real data
 
 ```powershell
@@ -106,7 +112,7 @@ src/combo_detection/
   cli.py          - the `combo-detect` command
   gui.py          - the `combo-detect-gui` windowed command (see "Running it without the command line" above)
   drift_check.py  - the `combo-check-drift` command (see below)
-tests/            - pytest suite (46 tests)
+tests/            - pytest suite (53 tests)
 data/             - sample CSVs (synthetic, safe to share)
 output/           - generated PDF + Excel reports (git-ignored -- may contain real user IDs once run for real)
 run_gui.ps1       - double-click launcher for the GUI
@@ -118,7 +124,7 @@ run_gui.ps1       - double-click launcher for the GUI
 .venv\Scripts\pytest.exe
 ```
 
-46 tests: ruleset loading, composite-role resolution, the N-way matching
+53 tests: ruleset loading, composite-role resolution, the N-way matching
 logic (including that a rule with any function missing a T-code can never
 produce a false match), PDF- and Excel-generation smoke tests (including a
 regression test that a rule with more than 3 functions doesn't get
@@ -129,10 +135,11 @@ drift-check logic tests (see below) -- one of which runs against the real
 sibling `SOD_Detection` ruleset when that repo is present, and skips
 cleanly when it isn't -- and CLI tests confirming a missing file or
 malformed CSV/JSON input produces a clean one-line error and exit code 1,
-not a raw traceback. (`gui.py` itself isn't exercised by pytest, to keep
-the suite runnable on a headless CI machine with no display / Tk
-installed -- it's a thin widget layer over the same `pipeline.run_detection()`
-the tests do cover.)
+not a raw traceback. Also covers the sample-data-path detection behind
+the GUI's demo-data warning. (`gui.py` itself isn't exercised by pytest,
+to keep the suite runnable on a headless CI machine with no display / Tk
+installed -- it's a thin widget layer over `pipeline.run_detection()` and
+`sample_data.py`, both of which the tests do cover.)
 
 ## Checking for ruleset drift against SOD_Detection
 

@@ -16,6 +16,7 @@ import webbrowser
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 from .pipeline import run_detection
+from .sample_data import any_sample_data_paths
 
 # src/combo_detection/gui.py -> src/combo_detection -> src -> project root
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -66,6 +67,10 @@ class App(ttk.Frame):
 
         self._build_widgets()
 
+        for key in ("role_tcodes", "user_roles", "composite_roles"):
+            self.vars[key].trace_add("write", lambda *_args: self._update_sample_data_warning())
+        self._update_sample_data_warning()
+
     def _build_widgets(self):
         self.columnconfigure(1, weight=1)
 
@@ -74,26 +79,39 @@ class App(ttk.Frame):
         self._path_row(2, "User -> Role CSV", "user_roles", [("CSV files", "*.csv")])
         self._path_row(3, "Composite roles CSV (optional)", "composite_roles", [("CSV files", "*.csv")])
 
-        ttk.Label(self, text="Generated for (optional label)").grid(row=4, column=0, sticky="w", pady=(8, 2))
+        self.sample_warning = ttk.Label(
+            self,
+            text=(
+                "⚠ Using bundled SAMPLE data (data/sample_*.csv) -- the synthetic 2-user demo dataset, "
+                "not a real SAP export. Findings from this run are not real."
+            ),
+            foreground="#8A1F1F",
+            wraplength=640,
+            justify="left",
+        )
+        self.sample_warning.grid(row=4, column=0, columnspan=3, sticky="ew", pady=(4, 0))
+        self.sample_warning.grid_remove()
+
+        ttk.Label(self, text="Generated for (optional label)").grid(row=5, column=0, sticky="w", pady=(8, 2))
         ttk.Entry(self, textvariable=self.vars["generated_for"]).grid(
-            row=4, column=1, columnspan=2, sticky="ew", pady=(8, 2)
+            row=5, column=1, columnspan=2, sticky="ew", pady=(8, 2)
         )
 
-        self._path_row(5, "Output PDF", "output_pdf", [("PDF files", "*.pdf")], save=True, default_ext=".pdf")
-        self._path_row(6, "Output Excel", "output_excel", [("Excel files", "*.xlsx")], save=True, default_ext=".xlsx")
+        self._path_row(6, "Output PDF", "output_pdf", [("PDF files", "*.pdf")], save=True, default_ext=".pdf")
+        self._path_row(7, "Output Excel", "output_excel", [("Excel files", "*.xlsx")], save=True, default_ext=".xlsx")
 
         button_row = ttk.Frame(self)
-        button_row.grid(row=7, column=0, columnspan=3, sticky="ew", pady=(12, 6))
+        button_row.grid(row=8, column=0, columnspan=3, sticky="ew", pady=(12, 6))
         self.run_button = ttk.Button(button_row, text="Run Detection", command=self._on_run)
         self.run_button.pack(side="left")
         ttk.Button(button_row, text="Open Output Folder", command=self._open_output_folder).pack(
             side="left", padx=(8, 0)
         )
 
-        ttk.Label(self, text="Log").grid(row=8, column=0, sticky="w")
+        ttk.Label(self, text="Log").grid(row=9, column=0, sticky="w")
         self.log = scrolledtext.ScrolledText(self, height=16, state="disabled", wrap="word")
-        self.log.grid(row=9, column=0, columnspan=3, sticky="nsew", pady=(2, 0))
-        self.rowconfigure(9, weight=1)
+        self.log.grid(row=10, column=0, columnspan=3, sticky="nsew", pady=(2, 0))
+        self.rowconfigure(10, weight=1)
 
     def _path_row(self, row, label, key, filetypes, save=False, default_ext=None):
         ttk.Label(self, text=label).grid(row=row, column=0, sticky="w", pady=2)
@@ -126,10 +144,31 @@ class App(ttk.Frame):
         self.log.configure(state="disabled")
         self.master.update_idletasks()
 
+    def _is_using_sample_data(self):
+        return any_sample_data_paths(
+            [self.vars["role_tcodes"].get(), self.vars["user_roles"].get(), self.vars["composite_roles"].get()],
+            _PROJECT_ROOT,
+        )
+
+    def _update_sample_data_warning(self):
+        if self._is_using_sample_data():
+            self.sample_warning.grid()
+        else:
+            self.sample_warning.grid_remove()
+
     def _on_run(self):
         values = {key: var.get().strip() for key, var in self.vars.items()}
         if not values["role_tcodes"] or not values["user_roles"]:
             messagebox.showerror("Missing input", "Role -> T-code CSV and User -> Role CSV are both required.")
+            return
+
+        if self._is_using_sample_data() and not messagebox.askyesno(
+            "Sample data detected",
+            "One or more of the selected files is the bundled SAMPLE data "
+            "(data/sample_*.csv) -- the synthetic 2-user demo dataset, not a "
+            "real SAP export.\n\nRun anyway?",
+            icon="warning",
+        ):
             return
 
         self.log.configure(state="normal")
