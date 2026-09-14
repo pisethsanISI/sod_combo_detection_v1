@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.egg-info/
+*.pyc
+.pytest_cache/
+
+# Generated reports -- may contain real user IDs/role names once run
+# against real data. Same data-locality policy as SOD_Detection.
+output/

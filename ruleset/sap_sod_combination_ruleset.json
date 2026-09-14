@@ -1,0 +1,499 @@
+[
+  {
+    "combo_id": "COMBO-P2P-01",
+    "process_area": "P2P",
+    "category": "Vendor Fraud Cycle",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Create Vendor",
+        "tcodes": [
+          "FK01",
+          "MK01",
+          "XK01"
+        ]
+      },
+      {
+        "name": "Change Bank Details",
+        "tcodes": [
+          "FK02",
+          "XK02"
+        ]
+      },
+      {
+        "name": "Run Payment",
+        "tcodes": [
+          "F110"
+        ]
+      }
+    ],
+    "business_impact": "Can create a vendor, redirect its bank account, and execute payment to it -- a fully self-contained vendor-fraud cycle with zero independent checkpoint at any stage.",
+    "suggested_mitigation": "These three functions must never combine in one role. If unavoidable, require independent approval on any vendor bank-detail change before that vendor becomes payment-eligible.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule P2P-VEN-01 (Change Bank Details vs Run Payment) by adding vendor creation itself into the same hands."
+  },
+  {
+    "combo_id": "COMBO-P2P-02",
+    "process_area": "P2P",
+    "category": "Three-Way Match Bypass",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Raise Purchase Order",
+        "tcodes": [
+          "ME21N"
+        ]
+      },
+      {
+        "name": "Post Goods Receipt",
+        "tcodes": [
+          "MIGO"
+        ]
+      },
+      {
+        "name": "Enter Invoice",
+        "tcodes": [
+          "FB60",
+          "MIRO"
+        ]
+      }
+    ],
+    "business_impact": "Holds all three legs of the three-way match -- order, receipt, and invoice -- and can order goods that never arrive while self-certifying the entire transaction.",
+    "suggested_mitigation": "Segregate at least one of the three steps to a different person. If structurally impossible for a small team, flag as a compensating-control candidate for periodic post-transaction review.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules P2P-GR-02 (PO vs Goods Receipt) and P2P-INV-01 (Invoice vs Payment) by combining all three legs."
+  },
+  {
+    "combo_id": "COMBO-O2C-01",
+    "process_area": "O2C",
+    "category": "Fictitious Revenue Channel",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Create Customer",
+        "tcodes": [
+          "FD01",
+          "VD01",
+          "XD01"
+        ]
+      },
+      {
+        "name": "Set Credit Limit",
+        "tcodes": [
+          "FD32"
+        ]
+      },
+      {
+        "name": "Create Sales Order",
+        "tcodes": [
+          "VA01"
+        ]
+      }
+    ],
+    "business_impact": "Can create a customer, grant it an arbitrary credit limit, and sell to it -- a self-contained channel for fictitious or over-extended revenue with no independent party involved.",
+    "suggested_mitigation": "Segregate customer master maintenance, credit management, and sales order entry across at least two people.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule O2C-COL-03 (Credit Limit vs Sales Order) by adding customer creation into the same hands."
+  },
+  {
+    "combo_id": "COMBO-O2C-02",
+    "process_area": "O2C",
+    "category": "Receipt Diversion Cover-up",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Apply Incoming Payment",
+        "tcodes": [
+          "F-28"
+        ]
+      },
+      {
+        "name": "Post Credit Memo",
+        "tcodes": [
+          "FB75",
+          "VF01"
+        ]
+      },
+      {
+        "name": "Create Customer",
+        "tcodes": [
+          "FD01",
+          "VD01",
+          "XD01"
+        ]
+      }
+    ],
+    "business_impact": "Can misapply or divert a real customer receipt and cover the resulting imbalance with a credit memo, using a customer account they created themselves.",
+    "suggested_mitigation": "Segregate cash application, credit memo posting, and customer master maintenance across different people.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule O2C-CASH-02 (Incoming Payment vs Credit Memo) by adding customer creation into the same hands."
+  },
+  {
+    "combo_id": "COMBO-TR-01",
+    "process_area": "Treasury",
+    "category": "Full Payment Custody",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Open Bank Account",
+        "tcodes": [
+          "FI01",
+          "FI12"
+        ]
+      },
+      {
+        "name": "Execute Payment",
+        "tcodes": [
+          "F110"
+        ]
+      },
+      {
+        "name": "Reconcile Bank",
+        "tcodes": [
+          "FEBA",
+          "FF67"
+        ]
+      }
+    ],
+    "business_impact": "Opens the account money moves through, executes the payment, and reconciles the bank statement -- complete custody of the entire payment lifecycle with no independent party at any stage.",
+    "suggested_mitigation": "These three functions must sit with at least two different people. Treat as a top-priority segregation if currently combined anywhere in a real role.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules TR-BANK-01 (Bank Account vs Execute Payment) and TR-OVS-01 (Release Payment vs Reconcile Bank)."
+  },
+  {
+    "combo_id": "COMBO-TR-02",
+    "process_area": "Treasury",
+    "category": "Rogue Trader Cycle",
+    "risk_level": "High",
+    "control_type": "Manual",
+    "functions": [
+      {
+        "name": "Capture Deal",
+        "tcodes": []
+      },
+      {
+        "name": "Set Exposure Limit",
+        "tcodes": []
+      },
+      {
+        "name": "Settle Deal",
+        "tcodes": []
+      }
+    ],
+    "business_impact": "Controls a financial deal's entire lifecycle -- sets their own risk limit, books the deal, and settles it alone -- the classic 'rogue trader' scenario.",
+    "suggested_mitigation": "Track as a fully organizational control (dual sign-off on deal capture, limit-setting, and settlement); none of these three functions currently has a T-code mapping in this ruleset, so no system restriction can substitute for the process control.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule TR-DEAL-03 (Exposure Limit vs Deal Capture); all three legs are already Manual/Partial in the base ruleset"
+  },
+  {
+    "combo_id": "COMBO-FA-01",
+    "process_area": "Assets",
+    "category": "Unreviewed Asset Lifecycle",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Create Asset Record",
+        "tcodes": [
+          "AS01"
+        ]
+      },
+      {
+        "name": "Capitalise Asset",
+        "tcodes": [
+          "ABZON",
+          "F-90"
+        ]
+      },
+      {
+        "name": "Run Depreciation",
+        "tcodes": [
+          "AFAB"
+        ]
+      }
+    ],
+    "business_impact": "Originates, capitalises, and depreciates the same asset with no independent review at any of the three major lifecycle events.",
+    "suggested_mitigation": "Segregate at minimum asset master creation from capitalisation; consider periodic review of the depreciation posting log as a compensating control.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule FA-MSTR-01 (Asset Record vs Capitalise/Hold) by adding depreciation execution into the same hands."
+  },
+  {
+    "combo_id": "COMBO-FA-02",
+    "process_area": "Assets",
+    "category": "Disposal Chain Collapse",
+    "risk_level": "High",
+    "control_type": "Partial",
+    "functions": [
+      {
+        "name": "Count Assets",
+        "tcodes": []
+      },
+      {
+        "name": "Approve Write-off",
+        "tcodes": []
+      },
+      {
+        "name": "Post Retirement",
+        "tcodes": [
+          "ABAON",
+          "ABAVN"
+        ]
+      }
+    ],
+    "business_impact": "Can physically report an asset missing (count short), approve the resulting write-off, and formally retire it -- the entire disposal-control chain in one hand.",
+    "suggested_mitigation": "Require an independent physical verification and a separate write-off approver as organizational controls -- the retirement posting T-code alone is not a sufficient checkpoint on its own.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule FA-PHY-02 (Count Assets vs Approve Write-off); two of the three legs have no T-code in the base ruleset."
+  },
+  {
+    "combo_id": "COMBO-R2R-01",
+    "process_area": "R2R",
+    "category": "Unreviewed Manual Entry",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Post Journal Entry",
+        "tcodes": [
+          "F-02",
+          "FB50"
+        ]
+      },
+      {
+        "name": "Approve Journal Entry",
+        "tcodes": [
+          "FBV0"
+        ]
+      },
+      {
+        "name": "Reconcile Account",
+        "tcodes": [
+          "F-03",
+          "FAGLL03"
+        ]
+      }
+    ],
+    "business_impact": "Posts a manual entry, approves their own posting, and reconciles/clears it away -- the entire control chain around a manual journal entry collapsed into one person.",
+    "suggested_mitigation": "These three functions should never combine in one role. If any two must, ensure the third sits with someone else.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules R2R-JE-01 (Post vs Approve) and R2R-JE-02 (Post vs Reconcile) by combining all three."
+  },
+  {
+    "combo_id": "COMBO-R2R-02",
+    "process_area": "R2R",
+    "category": "Period Integrity Override",
+    "risk_level": "High",
+    "control_type": "Partial",
+    "functions": [
+      {
+        "name": "Open or Close Period",
+        "tcodes": [
+          "OB52"
+        ]
+      },
+      {
+        "name": "Post Journal Entry",
+        "tcodes": [
+          "F-02",
+          "FB50"
+        ]
+      },
+      {
+        "name": "Sign Off the Close",
+        "tcodes": []
+      }
+    ],
+    "business_impact": "Can reopen a closed period, post whatever they want into it, and sign off the close themselves -- complete control over period-end integrity.",
+    "suggested_mitigation": "Restrict period open/close authority to controllership as an organizational control, and require close sign-off by someone other than the preparer of manual entries in that period.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules R2R-PER-01 (Period Control vs Post) and R2R-PER-03 (Sign-off vs Post); the sign-off leg has no T-code in the base ruleset."
+  },
+  {
+    "combo_id": "COMBO-P2D-01",
+    "process_area": "P2D",
+    "category": "Inventory Loss Concealment",
+    "risk_level": "High",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Count Stock",
+        "tcodes": [
+          "MI01",
+          "MI04"
+        ]
+      },
+      {
+        "name": "Write Off Inventory",
+        "tcodes": [
+          "MI07"
+        ]
+      },
+      {
+        "name": "Post Goods Issue",
+        "tcodes": [
+          "VL02N"
+        ]
+      }
+    ],
+    "business_impact": "Can report a stock shortfall, write it off, and also ship goods out -- the full custody-to-disposal chain in one hand, able to both cause and conceal inventory loss.",
+    "suggested_mitigation": "Segregate physical counting, write-off posting, and goods issue across different people.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule P2D-STK-01 (Count Stock vs Write Off) by adding goods-issue authority into the same hands."
+  },
+  {
+    "combo_id": "COMBO-P2D-02",
+    "process_area": "P2D",
+    "category": "Unreleased Production Cycle",
+    "risk_level": "Medium",
+    "control_type": "System",
+    "functions": [
+      {
+        "name": "Create Production Order",
+        "tcodes": [
+          "CO01"
+        ]
+      },
+      {
+        "name": "Release Order",
+        "tcodes": [
+          "CO05N",
+          "CO41"
+        ]
+      },
+      {
+        "name": "Confirm Order",
+        "tcodes": [
+          "CO11N"
+        ]
+      }
+    ],
+    "business_impact": "Self-contained production authorization from creation through confirmation, with no independent release check anywhere in the sequence.",
+    "suggested_mitigation": "Segregate at least the release step from order creation and confirmation.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule P2D-PRD-01 (Release vs Confirm)"
+  },
+  {
+    "combo_id": "COMBO-EWM-01",
+    "process_area": "EWM",
+    "category": "Concealed Stock Adjustment",
+    "risk_level": "High",
+    "control_type": "Partial",
+    "functions": [
+      {
+        "name": "Adjust Stock",
+        "tcodes": [
+          "MB1B"
+        ]
+      },
+      {
+        "name": "Approve Adjustment",
+        "tcodes": []
+      },
+      {
+        "name": "Create Storage Bin",
+        "tcodes": [
+          "LS01N"
+        ]
+      }
+    ],
+    "business_impact": "Can create a storage bin to conceal stock, move stock into or out of it, and approve their own adjustment -- a complete concealment mechanism.",
+    "suggested_mitigation": "Require an independent approver for stock adjustments above a threshold as an organizational control, alongside segregating bin creation from stock movement.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules EWM-CNT-02 (Adjust vs Approve) and EWM-WOF-03 (Storage Bin vs Adjust); the approval leg has no T-code in the base ruleset."
+  },
+  {
+    "combo_id": "COMBO-EWM-02",
+    "process_area": "EWM",
+    "category": "Fake Return Cycle",
+    "risk_level": "Medium",
+    "control_type": "Partial",
+    "functions": [
+      {
+        "name": "Receive Return",
+        "tcodes": [
+          "MIGO",
+          "VL01N"
+        ]
+      },
+      {
+        "name": "Post Credit Memo",
+        "tcodes": [
+          "FB75",
+          "VF01"
+        ]
+      },
+      {
+        "name": "Post Stock",
+        "tcodes": [
+          "MIGO"
+        ]
+      }
+    ],
+    "business_impact": "Processes a fake or inflated return through all three steps -- receipt confirmation, crediting the customer, and posting stock back in -- with nobody else involved at any stage.",
+    "suggested_mitigation": "Segregate return receipt from credit memo posting at minimum.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rule EWM-RTN-01 (Receive Return vs Credit Memo); Receive Return and Post Stock share the T-code MIGO"
+  },
+  {
+    "combo_id": "COMBO-SEC-01",
+    "process_area": "Basis & Security",
+    "category": "Self-Concealing Access Grant",
+    "risk_level": "High",
+    "control_type": "Partial",
+    "functions": [
+      {
+        "name": "Design Role",
+        "tcodes": [
+          "PFCG"
+        ]
+      },
+      {
+        "name": "Assign Role",
+        "tcodes": [
+          "PFCG",
+          "SU01"
+        ]
+      },
+      {
+        "name": "Maintain SoD Rules",
+        "tcodes": []
+      }
+    ],
+    "business_impact": "Can build a role, grant it to anyone including themselves, and adjust the very SOD ruleset that would have flagged the combination -- arguably the single most dangerous combination in this set, since it undermines the governance process meant to catch every other rule.",
+    "suggested_mitigation": "Ownership of the SOD ruleset must sit with a different person or team than role design and assignment, tracked as a governance control, not just a system restriction.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules SEC-ACC-02 (Design vs Assign) and SEC-CTRL-03 (Design Role vs Maintain SoD Rules); Design Role and Assign Role also share the T-code PFCG."
+  },
+  {
+    "combo_id": "COMBO-SEC-02",
+    "process_area": "Basis & Security",
+    "category": "Privileged Access Self-Review",
+    "risk_level": "High",
+    "control_type": "Manual",
+    "functions": [
+      {
+        "name": "Grant Emergency Access",
+        "tcodes": []
+      },
+      {
+        "name": "Use Firefighter ID",
+        "tcodes": []
+      },
+      {
+        "name": "Review the Logs",
+        "tcodes": [
+          "SM20"
+        ]
+      }
+    ],
+    "business_impact": "Can grant themselves emergency/firefighter access, use it, and then review -- and effectively control what gets flagged in -- the log of their own privileged session.",
+    "suggested_mitigation": "Track firefighter grant, usage, and log review as a fully organizational control involving three separate people; SM20 access alone provides no real separation here, since the granting and usage steps have no T-code footprint at all.",
+    "status": "DRAFT - not yet approved by IT Governance",
+    "notes": "Escalates the existing pairwise rules SEC-PRIV-02 (Grant vs Use) and SEC-PRIV-03 (Use vs Review Logs) into a single three-way chain."
+  }
+]
