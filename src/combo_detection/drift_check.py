@@ -13,6 +13,7 @@ either ruleset changes, not on every CI run.
 
 import argparse
 import json
+import sys
 from collections import defaultdict
 
 
@@ -91,14 +92,31 @@ def build_arg_parser():
     return parser
 
 
+def _load_json(path):
+    """Open and parse a ruleset JSON file, raising ValueError (not a bare
+    JSONDecodeError) with the path attached if it's malformed -- same
+    convention as ruleset.load_combination_ruleset.
+    """
+    with open(path, encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"{path}: not valid JSON ({e})") from e
+
+
 def main(argv=None):
     parser = build_arg_parser()
     args = parser.parse_args(argv)
 
-    with open(args.combination_ruleset, encoding="utf-8") as f:
-        combo_rules = json.load(f)
-    with open(args.pairwise_ruleset, encoding="utf-8") as f:
-        pairwise_rules = json.load(f)
+    try:
+        combo_rules = _load_json(args.combination_ruleset)
+        pairwise_rules = _load_json(args.pairwise_ruleset)
+    except FileNotFoundError as e:
+        print(f"Error: file not found -- {e.filename}", file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
     canonical_functions = build_canonical_functions(pairwise_rules)
     issues = find_drift(combo_rules, canonical_functions)
@@ -125,4 +143,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

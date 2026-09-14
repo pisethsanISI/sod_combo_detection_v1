@@ -1,6 +1,7 @@
 """Command-line entry point (installed as `combo-detect`)."""
 
 import argparse
+import os
 import sys
 
 from .access import build_user_tcode_roles
@@ -31,6 +32,17 @@ def build_arg_parser():
     return parser
 
 
+def _ensure_parent_dir(path):
+    """Create the output path's parent directory if it doesn't exist yet --
+    neither reportlab nor openpyxl will do this for you, and without it a
+    fresh --output path fails with a FileNotFoundError that reads like the
+    report file itself was expected to already exist.
+    """
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
 def main(argv=None):
     parser = build_arg_parser()
     args = parser.parse_args(argv)
@@ -52,9 +64,11 @@ def main(argv=None):
             f"Findings: {len(findings)} across {len(affected)} user(s): {', '.join(affected) if affected else '(none)'}"
         )
 
+        _ensure_parent_dir(args.output)
         build_pdf_report(rules, findings, args.output, generated_for=args.generated_for)
         print(f"\nPDF report written to: {args.output}")
 
+        _ensure_parent_dir(args.excel_output)
         build_excel_report(rules, findings, args.excel_output, generated_for=args.generated_for)
         print(f"Excel report written to: {args.excel_output}")
     except FileNotFoundError as e:

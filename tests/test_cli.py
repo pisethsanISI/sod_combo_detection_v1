@@ -61,3 +61,31 @@ def test_main_succeeds_against_the_bundled_sample_data(tmp_path, capsys):
     assert exit_code == 0
     assert (tmp_path / "report.pdf").exists()
     assert (tmp_path / "report.xlsx").exists()
+
+
+def test_main_creates_output_directories_that_do_not_exist_yet(tmp_path):
+    # Regression test: --output/--excel-output pointing at a fresh directory
+    # used to fail with a misleading "file not found" error, since neither
+    # reportlab nor openpyxl create missing parent directories themselves.
+    out_dir = tmp_path / "brand_new_dir" / "nested"
+
+    exit_code = main(
+        [
+            "--ruleset",
+            "ruleset/sap_sod_combination_ruleset.json",
+            "--role-tcodes",
+            "data/sample_role_tcodes.csv",
+            "--user-roles",
+            "data/sample_user_roles.csv",
+            "--composite-roles",
+            "data/sample_composite_roles.csv",
+            "--output",
+            str(out_dir / "report.pdf"),
+            "--excel-output",
+            str(out_dir / "report.xlsx"),
+        ]
+    )
+
+    assert exit_code == 0
+    assert (out_dir / "report.pdf").exists()
+    assert (out_dir / "report.xlsx").exists()

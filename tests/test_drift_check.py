@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from combo_detection.drift_check import build_canonical_functions, find_drift
+from combo_detection.drift_check import build_canonical_functions, find_drift, main
 
 PAIRWISE_RULESET_PATH = os.path.join("..", "SOD_Detection", "ruleset", "sap_sod_ruleset.json")
 
@@ -64,6 +64,44 @@ def test_find_drift_flags_function_name_absent_from_pairwise_ruleset():
     assert len(issues) == 1
     assert issues[0]["issue"] == "unknown_function"
     assert issues[0]["function_name"] == "Approve Budget"
+
+
+def test_main_reports_missing_pairwise_ruleset_cleanly_instead_of_a_traceback(tmp_path, capsys):
+    # Regression test: main() used to let open()/json.load() raise straight
+    # through as a bare traceback -- combo-detect's cli.py already got this
+    # friendly-error treatment, drift_check.py hadn't caught up.
+    exit_code = main(
+        [
+            "--combination-ruleset",
+            "ruleset/sap_sod_combination_ruleset.json",
+            "--pairwise-ruleset",
+            str(tmp_path / "does_not_exist.json"),
+        ]
+    )
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert "does_not_exist.json" in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_main_reports_malformed_pairwise_ruleset_json_cleanly(tmp_path, capsys):
+    bad_json = tmp_path / "pairwise.json"
+    bad_json.write_text("{not valid json", encoding="utf-8")
+
+    exit_code = main(
+        [
+            "--combination-ruleset",
+            "ruleset/sap_sod_combination_ruleset.json",
+            "--pairwise-ruleset",
+            str(bad_json),
+        ]
+    )
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert "not valid JSON" in captured.err
+    assert "Traceback" not in captured.err
 
 
 @pytest.mark.skipif(
