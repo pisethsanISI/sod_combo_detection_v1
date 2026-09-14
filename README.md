@@ -59,6 +59,22 @@ shape, across three sheets:
 
 Open `output\sod_combination_report.pdf` and `output\sod_combination_report.xlsx` afterward.
 
+### Running it without the command line (GUI)
+
+```powershell
+.\run_gui.ps1
+```
+
+Opens a small desktop window: browse to your role/T-code, user/role, and
+(optional) composite-role CSVs -- whatever you just exported fresh from
+SAP -- pick where to write the PDF and Excel reports, and click **Run
+Detection**. Progress and any error shows in the on-screen log instead of
+a terminal. It remembers your last-used paths (in
+`~/.combo_detection_gui_settings.json`, outside the repo) so the next run
+after a new export doesn't mean re-browsing everything. This is the same
+`combo-detect` pipeline underneath -- `cli.py` and `gui.py` both call the
+shared `pipeline.run_detection()`, so the two never drift apart.
+
 ### Running against real data
 
 ```powershell
@@ -86,11 +102,14 @@ src/combo_detection/
   detect.py       - the N-way matching logic (every function must match, not just 2)
   report_pdf.py   - builds the PDF, grouped by module
   report_excel.py - builds the Excel workbook (Read Me / Findings / Manual Controls)
+  pipeline.py     - shared run_detection() pipeline used by both cli.py and gui.py
   cli.py          - the `combo-detect` command
+  gui.py          - the `combo-detect-gui` windowed command (see "Running it without the command line" above)
   drift_check.py  - the `combo-check-drift` command (see below)
-tests/            - pytest suite (39 tests)
+tests/            - pytest suite (46 tests)
 data/             - sample CSVs (synthetic, safe to share)
 output/           - generated PDF + Excel reports (git-ignored -- may contain real user IDs once run for real)
+run_gui.ps1       - double-click launcher for the GUI
 ```
 
 ## Running the tests
@@ -99,17 +118,21 @@ output/           - generated PDF + Excel reports (git-ignored -- may contain re
 .venv\Scripts\pytest.exe
 ```
 
-39 tests: ruleset loading, composite-role resolution, the N-way matching
+46 tests: ruleset loading, composite-role resolution, the N-way matching
 logic (including that a rule with any function missing a T-code can never
 produce a false match), PDF- and Excel-generation smoke tests (including a
 regression test that a rule with more than 3 functions doesn't get
-truncated), one end-to-end test that runs the real 16-rule ruleset against
-the bundled sample data and confirms the expected match, drift-check logic
-tests (see below) -- one of which runs against the real sibling
-`SOD_Detection` ruleset when that repo is present, and skips cleanly when
-it isn't -- and CLI tests confirming a missing file or malformed CSV/JSON
-input produces a clean one-line error and exit code 1, not a raw
-traceback.
+truncated), pipeline tests covering the shared `run_detection()` used by
+both the CLI and the GUI, one end-to-end test that runs the real 16-rule
+ruleset against the bundled sample data and confirms the expected match,
+drift-check logic tests (see below) -- one of which runs against the real
+sibling `SOD_Detection` ruleset when that repo is present, and skips
+cleanly when it isn't -- and CLI tests confirming a missing file or
+malformed CSV/JSON input produces a clean one-line error and exit code 1,
+not a raw traceback. (`gui.py` itself isn't exercised by pytest, to keep
+the suite runnable on a headless CI machine with no display / Tk
+installed -- it's a thin widget layer over the same `pipeline.run_detection()`
+the tests do cover.)
 
 ## Checking for ruleset drift against SOD_Detection
 

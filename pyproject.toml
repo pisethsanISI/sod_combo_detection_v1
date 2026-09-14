@@ -15,6 +15,9 @@ dependencies = ["reportlab>=4.0", "openpyxl>=3.1"]
 combo-detect = "combo_detection.cli:main"
 combo-check-drift = "combo_detection.drift_check:main"
 
+[project.gui-scripts]
+combo-detect-gui = "combo_detection.gui:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
 
